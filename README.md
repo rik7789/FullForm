@@ -30,14 +30,22 @@ NumPy — angle calculations from joint coordinates
 Hosting
 
 Frontend + backend deployable as a single unified Flask app (Flask serves the built React static files), or as separate services depending on hosting provider.
+
 How It Works
+
 Upload — The user selects an exercise type (e.g. squats, bicep curls) and uploads a video through the React frontend.
 Processing — The video is sent to the Flask backend via a POST /upload request. The backend reads the video frame-by-frame using OpenCV.
+
 Pose Detection — Each frame is passed through MediaPipe's Pose model, which returns body landmark coordinates (joints like hips, knees, ankles, shoulders, elbows, wrists).
+
 Form Analysis — Using the detected landmarks, the backend calculates relevant joint angles (e.g. knee angle for squats, elbow angle for bicep curls) with vector math. Frames where the angle falls outside a healthy range are flagged.
+
 Feedback Overlay — Flagged frames get a warning label burned directly into the video (e.g. "WARNING: SQUAT DEEPER!"), and a deduplicated list of timestamped text warnings is generated.
+
 Response — The processed video and warning list are returned to the frontend, where the user can watch the annotated video and review the feedback.
+
 Project Structure
+
 FullForm/
 ├── backend.py              # Flask app: upload/download routes, pose analysis logic
 ├── requirements.txt        # Python dependencies
@@ -50,6 +58,7 @@ FullForm/
     │       └── analyzeVideo.js
     ├── dist/                 # Production build output (generated)
     └── package.json
+    
 Running Locally
 
 Backend
@@ -77,6 +86,7 @@ Bicep Curls	Shoulder–Elbow–Wrist	Incomplete rep (partial extension/flexion)
 More exercises can be added by extending the process_video_file function in backend.py with new landmark combinations and angle thresholds.
 
 Notes
+
 Video processing runs synchronously per upload — larger videos take proportionally longer to analyze.
 MediaPipe Pose currently tracks a single person per frame; multi-person videos are not supported.
 If MediaPipe is unavailable in the runtime environment, the backend falls back to a no-op mode (returns the original video unmodified with no warnings) rather than failing outright.
