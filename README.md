@@ -2,6 +2,7 @@ FullForm
 App link: https://fullformapp.vercel.app/
 
 Contributors: Alex, Rithwik, Meet, Sanchit
+
 FullForm is a web app that analyzes workout videos and gives users real-time feedback on their exercise form. Users upload a video of themselves performing an exercise (currently supporting squats and bicep curls), and the app uses pose estimation to detect body landmarks, calculate joint angles, and flag frames where form breaks down — overlaying warnings directly on the returned video along with a text summary of issues found.
 
 
