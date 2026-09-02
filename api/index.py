@@ -1,15 +1,16 @@
 import os
+import tempfile
 from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
+from werkzeug.utils import secure_filename
 import cv2
 import mediapipe as mp
 import numpy as np
 
 app = Flask(__name__)
-CORS(app)
 
-UPLOAD_FOLDER = 'uploads'
-OUTPUT_FOLDER = 'processed'
+DATA_FOLDER = os.path.join(os.environ.get('TMPDIR', tempfile.gettempdir()), 'full-form')
+UPLOAD_FOLDER = os.path.join(DATA_FOLDER, 'uploads')
+OUTPUT_FOLDER = os.path.join(DATA_FOLDER, 'processed')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
@@ -115,6 +116,7 @@ def process_video_file(input_path, output_path, exercise_type):
     return list(dict.fromkeys(warnings))
 
 @app.route('/upload', methods=['POST'])
+@app.route('/api/upload', methods=['POST'])
 def upload_video():
     if 'video' not in request.files:
         return jsonify({"error": "No video file provided"}), 400
@@ -122,8 +124,12 @@ def upload_video():
     file = request.files['video']
     exercise = request.form.get('exercise', 'squats')
     
-    input_path = os.path.join(UPLOAD_FOLDER, file.filename)
-    output_filename = f"processed_{file.filename}"
+    safe_filename = secure_filename(file.filename)
+    if not safe_filename:
+        return jsonify({"error": "Invalid video filename"}), 400
+
+    input_path = os.path.join(UPLOAD_FOLDER, safe_filename)
+    output_filename = f"processed_{safe_filename}"
     output_path = os.path.join(OUTPUT_FOLDER, output_filename)
     
     file.save(input_path)
@@ -132,11 +138,12 @@ def upload_video():
     text_warnings = process_video_file(input_path, output_path, exercise)
     
     return jsonify({
-        "videoUrl": f"http://localhost:5000/download/{output_filename}",
+        "videoUrl": f"/api/download/{output_filename}",
         "warnings": text_warnings
     })
 
 @app.route('/download/<filename>')
+@app.route('/api/download/<filename>')
 def download_file(filename):
     return send_from_directory(OUTPUT_FOLDER, filename)
 
