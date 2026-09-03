@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import Button from './Button.jsx'
 import logo from '../assets/logofullform.png'
-import analyzeVideo from '../utils/analyzeVideo'
+import analyzeVideo, { EXERCISES } from '../utils/analyzeVideo'
 import AnalysisModal from './AnalysisModal'
 import { useEffect } from 'react'
 
@@ -11,6 +11,8 @@ export default function Navbar() {
   const [analysisOpen, setAnalysisOpen] = useState(false)
   const [analysisData, setAnalysisData] = useState(null)
   const [videoUrl, setVideoUrl] = useState(null)
+  const [selectedExercise, setSelectedExercise] = useState('squats')
+  const [exerciseChooserOpen, setExerciseChooserOpen] = useState(false)
 
   useEffect(() => {
     window.addEventListener('open-upload', handleOpenCamera)
@@ -21,6 +23,12 @@ export default function Navbar() {
   }, [videoUrl])
 
   function handleOpenCamera() {
+    setExerciseChooserOpen(true)
+  }
+
+  function handleExerciseSelected(exercise) {
+    setSelectedExercise(exercise)
+    setExerciseChooserOpen(false)
     if (fileInputRef.current) fileInputRef.current.click()
   }
 
@@ -29,7 +37,7 @@ export default function Navbar() {
     if (!file) return
     setUploading(true)
     try {
-      const result = await analyzeVideo(file)
+      const result = await analyzeVideo(file, selectedExercise)
       console.log('analyzeVideo result', result)
       // Backwards-compat: analyzer may return an array of warnings (old) or an object { warnings, checkedFrames, ... }
       let warnings = []
@@ -200,6 +208,23 @@ export default function Navbar() {
         <Button onClick={handleOpenCamera} variant="ghost" size="sm" className="nav__cta">
           {uploading ? 'Uploading...' : 'Upload video'}
         </Button>
+
+        {exerciseChooserOpen && (
+          <div className="exercise-chooser" role="presentation">
+            <div className="exercise-chooser__backdrop" onClick={() => setExerciseChooserOpen(false)} />
+            <div className="exercise-chooser__panel" role="dialog" aria-modal="true" aria-labelledby="exercise-chooser-title">
+              <button className="exercise-chooser__close" onClick={() => setExerciseChooserOpen(false)} aria-label="Close">x</button>
+              <h2 id="exercise-chooser-title">What exercise are you uploading?</h2>
+              <div className="exercise-chooser__options">
+                {EXERCISES.map((exercise) => (
+                  <button key={exercise.value} onClick={() => handleExerciseSelected(exercise.value)}>
+                    {exercise.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         <input
           ref={fileInputRef}

@@ -29,6 +29,17 @@ async function tryLoadFrom(urls) {
   throw err
 }
 
+export const EXERCISES = [
+  { value: 'squats', label: 'Squats' },
+  { value: 'pushups', label: 'Push-ups' },
+  { value: 'bicep_curls', label: 'Bicep curls' },
+  { value: 'bench_press', label: 'Bench press' },
+  { value: 'deadlift', label: 'Deadlift' },
+  { value: 'lunges', label: 'Lunges' },
+  { value: 'overhead_press', label: 'Overhead press' },
+  { value: 'plank', label: 'Plank' },
+]
+
 function calculateAngle(a, b, c) {
   const ax = a.x, ay = a.y
   const bx = b.x, by = b.y
@@ -43,6 +54,77 @@ function calculateAngle(a, b, c) {
   if (magAB === 0 || magCB === 0) return 0
   let angle = Math.acos(Math.max(-1, Math.min(1, dot / (magAB * magCB)))) * (180 / Math.PI)
   return angle
+}
+
+function getPoint(keypoints, index) {
+  const point = keypoints[index]
+  return point && point.score > 0.3 ? { x: point.x, y: point.y } : null
+}
+
+function getSide(keypoints, side) {
+  const offset = side === 'right' ? 1 : 0
+  const points = {
+    shoulder: getPoint(keypoints, 5 + offset),
+    elbow: getPoint(keypoints, 7 + offset),
+    wrist: getPoint(keypoints, 9 + offset),
+    hip: getPoint(keypoints, 11 + offset),
+    knee: getPoint(keypoints, 13 + offset),
+    ankle: getPoint(keypoints, 15 + offset),
+  }
+  const score = Object.values(points).filter(Boolean).length
+  return { ...points, score }
+}
+
+function warningForExercise(exercise, side, time) {
+  const { shoulder, elbow, wrist, hip, knee, ankle } = side
+  const at = `${time}s:`
+
+  if (exercise === 'squats' && hip && knee && ankle) {
+    const angle = calculateAngle(hip, knee, ankle)
+    if (angle > 110) return `${at} Lower your hips further until your knee angle is near 90 degrees (currently ${Math.round(angle)} degrees).`
+  }
+
+  if (exercise === 'pushups' && shoulder && elbow && wrist && hip && ankle) {
+    const bodyLine = calculateAngle(shoulder, hip, ankle)
+    const elbowAngle = calculateAngle(shoulder, elbow, wrist)
+    if (bodyLine < 155) return `${at} Keep your head, shoulders, hips, and heels in one straight line.`
+    if (elbowAngle > 165) return `${at} Lower your chest toward the floor for a full push-up repetition.`
+  }
+
+  if (exercise === 'bicep_curls' && shoulder && elbow && wrist) {
+    const elbowAngle = calculateAngle(shoulder, elbow, wrist)
+    if (elbowAngle > 155) return `${at} Curl the weight higher and complete the repetition with control.`
+  }
+
+  if (exercise === 'bench_press' && shoulder && elbow && wrist) {
+    const elbowAngle = calculateAngle(shoulder, elbow, wrist)
+    if (elbowAngle > 165) return `${at} Lower the bar toward your chest for a controlled repetition.`
+  }
+
+  if (exercise === 'deadlift' && shoulder && hip && knee && ankle) {
+    const backAngle = calculateAngle(shoulder, hip, knee)
+    const kneeAngle = calculateAngle(hip, knee, ankle)
+    if (backAngle < 145) return `${at} Keep your back neutral and brace your core.`
+    if (kneeAngle < 70) return `${at} Keep the bar close and avoid collapsing into your knees.`
+  }
+
+  if (exercise === 'lunges' && hip && knee && ankle) {
+    const kneeAngle = calculateAngle(hip, knee, ankle)
+    if (kneeAngle > 115) return `${at} Bend your front knee deeper while keeping it aligned over your ankle.`
+  }
+
+  if (exercise === 'overhead_press' && shoulder && elbow && wrist) {
+    const elbowAngle = calculateAngle(shoulder, elbow, wrist)
+    if (wrist.y > shoulder.y + 30) return `${at} Press the weight overhead while keeping your wrist stacked over your shoulder.`
+    if (elbowAngle < 150) return `${at} Extend your arms fully overhead without arching your lower back.`
+  }
+
+  if (exercise === 'plank' && shoulder && hip && ankle) {
+    const bodyLine = calculateAngle(shoulder, hip, ankle)
+    if (bodyLine < 160) return `${at} Keep your shoulders, hips, and heels in one straight line.`
+  }
+
+  return null
 }
 
 export async function uploadVideo(file) {
@@ -64,7 +146,7 @@ export async function uploadVideo(file) {
   return payload || { warnings: [] }
 }
 
-export default async function analyzeVideo(file, onProgress = () => {}) {
+export default async function analyzeVideo(file, exercise = 'squats', onProgress = () => {}) {
   // Load TF and pose-detection from CDN if not present
   if (typeof window.tf === 'undefined') {
     await tryLoadFrom([
@@ -158,20 +240,11 @@ export default async function analyzeVideo(file, onProgress = () => {}) {
             detector.estimatePoses(video).then((poses) => {
               if (poses && poses.length > 0) {
                 const keypoints = poses[0].keypoints
-                // MoveNet COCO order: left hip 11, left knee 13, left ankle 15
-                const lHip = keypoints[11]
-                const lKnee = keypoints[13]
-                const lAnkle = keypoints[15]
-                if (lHip && lKnee && lAnkle && lHip.score > 0.3 && lKnee.score > 0.3 && lAnkle.score > 0.3) {
-                  const hip = { x: lHip.x, y: lHip.y }
-                  const knee = { x: lKnee.x, y: lKnee.y }
-                  const ankle = { x: lAnkle.x, y: lAnkle.y }
-                  const angle = calculateAngle(hip, knee, ankle)
-                  const t = Math.round(video.currentTime * 10) / 10
-                  if (angle > 100 && angle < 150) {
-                    warnings.push(`At ${t}s: Lower your hips further until your knee angle is near 90° (currently ${Math.round(angle)}°). Keep both heels planted, chest lifted, and knees tracking in line with your toes.`)
-                  }
-                }
+                const t = Math.round(video.currentTime * 10) / 10
+                const sides = [getSide(keypoints, 'left'), getSide(keypoints, 'right')]
+                const side = sides.sort((a, b) => b.score - a.score)[0]
+                const warning = warningForExercise(exercise, side, t)
+                if (warning) warnings.push(warning)
               }
             }).catch((e) => {
               // ignore per-frame errors
