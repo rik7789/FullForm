@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n frontend,backend \"vite\" \"venv_tmp\\Scripts\\python.exe api\\index.py\"",
+    "dev": "concurrently -k -n frontend,backend \"vite\" \"venv_tmp\\Scripts\\python.exe backend.py\"",
     "dev:frontend": "vite",
-    "dev:backend": "venv_tmp\\Scripts\\python.exe api\\index.py",
+    "dev:backend": "venv_tmp\\Scripts\\python.exe backend.py",
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview"

@@ -164,7 +164,86 @@
   transform: translateY(-2px);
   box-shadow: 0 10px 22px rgba(255, 216, 10, 0.16);
 }
+.sr-only{
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 @media (max-width: 720px){ .nav__links{ display: none; } }
+
+.exercise-chooser{
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(6rem, 18vh, 11rem) 1rem 1rem;
+}
+.exercise-chooser__backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(3,3,3,0.68);
+  backdrop-filter: blur(6px);
+}
+.exercise-chooser__panel{
+  position: relative;
+  z-index: 1;
+  width: min(480px, 100%);
+  padding: 2rem;
+  border: 1px solid var(--grey-600);
+  border-radius: 8px;
+  background: var(--grey-900);
+  box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+}
+.exercise-chooser__panel h2{
+  margin-bottom: 1.4rem;
+  color: var(--grey-50);
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 400;
+}
+.exercise-chooser__close{
+  position: absolute;
+  top: 0.7rem;
+  right: 0.9rem;
+  border: 0;
+  background: transparent;
+  color: var(--grey-200);
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+.exercise-chooser__options{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+.exercise-chooser__options button{
+  min-height: 3rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--grey-600);
+  border-radius: 3px;
+  background: var(--grey-800);
+  color: var(--grey-50);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.exercise-chooser__options button:hover{
+  border-color: var(--yellow);
+  color: var(--yellow);
+  transform: translateY(-1px);
+}
+@media (max-width: 440px){
+  .exercise-chooser__options{ grid-template-columns: 1fr; }
+}
 
 /* ---------------------------------------------------------
    Hero
