@@ -176,9 +176,9 @@
   min-height: 100vh;
   padding: clamp(2rem, 4vw, 3.5rem) 1.5rem;
   display: grid;
-  grid-template-columns: 1.1fr 0.9fr;
+  grid-template-columns: 0.85fr 1.15fr;
   align-items: center;
-  gap: 2.5rem;
+  gap: 3.5rem;
 }
 
 .hero__visual{
@@ -187,13 +187,28 @@
   justify-content: center;
 }
 
-.hero__image{
+.hero__video-frame{
   width: 100%;
-  max-width: 360px;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 28px;
+  max-width: 760px;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--grey-600);
+  border-radius: 10px;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.24);
+  overflow: hidden;
+  background: #000;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.hero__video-frame:hover{
+  transform: translateY(-3px);
+  border-color: var(--neon);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.32), 0 0 28px var(--neon-soft);
+}
+
+.hero__video-frame iframe{
+  width: 100%;
+  height: 100%;
+  border: 0;
   display: block;
 }
 
@@ -237,6 +252,17 @@
   color: var(--grey-50);
   font-weight: 600;
 }
+@media (max-width: 900px){
+  .hero{
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+    min-height: auto;
+    padding-top: 4rem;
+    padding-bottom: 5rem;
+  }
+  .hero__visual{ order: -1; }
+  .hero__video-frame{ max-width: 720px; }
+}
 .callout text{
   fill: var(--yellow);
   font-family: var(--font-mono);
@@ -274,6 +300,16 @@
   margin: 0.6rem 0 0.6rem;
 }
 .how__list p{ color: var(--grey-50); font-size: 0.95rem; font-weight: 600; }
+.how__image{
+  width: 100%;
+  max-height: 360px;
+  margin-top: 3.5rem;
+  object-fit: contain;
+  object-position: center;
+  border: 1px solid var(--grey-700);
+  border-radius: 8px;
+  background: rgba(17,17,17,0.72);
+}
 
 /* ---------------------------------------------------------
    Live feedback
@@ -292,6 +328,14 @@
 @media (max-width: 880px){ .feedback{ grid-template-columns: 1fr; } }
 
 .feedback__copy p{ margin-top: 1.1rem; color: var(--grey-50); max-width: 46ch; font-weight: 600; }
+.feedback__image{
+  width: 100%;
+  max-height: 520px;
+  object-fit: contain;
+  border: 1px solid var(--grey-700);
+  border-radius: 8px;
+  background: rgba(17,17,17,0.72);
+}
 
 .hud{
   background: var(--grey-900);
@@ -382,6 +426,10 @@
   min-height: 100vh;
   padding: clamp(3rem, 6vw, 5rem) 1.5rem 6rem;
   border-top: 1px solid var(--grey-700);
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 3rem;
 }
 .cta__tips{
   margin: 1.6rem 0 2.2rem;
@@ -391,29 +439,43 @@
   color: var(--grey-50);
   max-width: 50ch;
 }
-.cta__tips li{ padding-left: 1.2rem; position: relative; color: var(--grey-50); }
-.cta__tips li::before{
-  content: "—";
-  position: absolute;
-  left: 0;
-  color: var(--yellow);
+.cta__tips li{ color: var(--grey-50); }
+.cta__image{
+  width: 100%;
+  max-height: 500px;
+  object-fit: contain;
+  border: 1px solid var(--grey-700);
+  border-radius: 8px;
+  background: rgba(17,17,17,0.72);
+}
+@media (max-width: 880px){
+  .cta{ grid-template-columns: 1fr; gap: 2rem; }
+  .cta__image{ max-height: 420px; }
 }
 
 /* Analysis modal */
-.analysis-modal{ position: fixed; inset: 0; z-index: 200; display: flex; align-items: center; justify-content: center; }
+.analysis-modal{ position: fixed; inset: 0; z-index: 200; display: flex; align-items: flex-start; justify-content: center; padding: 10vh 1rem 1rem; box-sizing: border-box; }
 .analysis-modal__backdrop{ position: absolute; inset: 0; background: rgba(3,3,3,0.6); backdrop-filter: blur(6px); }
-.analysis-modal__panel{ position: relative; width: min(1100px, 96%); max-height: 90vh; overflow: auto; background: var(--grey-900); border: 1px solid var(--grey-700); border-radius: 8px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); padding: 18px; z-index: 210; }
+.analysis-modal__panel{ position: relative; width: min(1180px, 100%); height: min(900px, calc(100vh - 11vh)); overflow: hidden; background: var(--grey-900); border: 1px solid var(--grey-700); border-radius: 8px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); padding: 18px; z-index: 210; box-sizing: border-box; }
 .analysis-modal__close{ position: absolute; right: 12px; top: 8px; border: none; background: transparent; color: var(--grey-200); font-size: 18px; cursor: pointer; }
-.analysis-modal__content{ display: flex; gap: 18px; align-items: flex-start; }
-.analysis-modal__video-wrap{ flex: 1 1 60%; }
-.analysis-modal__video{ width: 100%; height: auto; border-radius: 6px; background: #000; display: block; }
-.analysis-modal__details{ flex: 1 1 40%; color: var(--grey-50); font-family: var(--font-mono); }
+.analysis-modal__content{ height: 100%; display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(260px, 0.85fr); gap: 18px; align-items: center; }
+.analysis-modal__video-wrap{ min-width: 0; display: flex; align-items: center; justify-content: center; background: #000; border-radius: 6px; overflow: hidden; }
+.analysis-modal__video{ width: 100%; max-height: calc(100vh - 8rem); aspect-ratio: 16 / 9; object-fit: contain; border-radius: 6px; background: #000; display: block; }
+.analysis-modal__details{ min-width: 0; max-height: 100%; overflow-y: auto; color: var(--grey-50); font-family: var(--font-mono); padding: 2rem 0.25rem 0.5rem 0; }
 .analysis-modal__details h3{ margin-top: 0; color: var(--grey-50); }
 .analysis-modal__stats{ margin-bottom: 12px; color: var(--grey-200); }
 .analysis-modal__list{ list-style: none; padding-left: 0; margin-top: 6px; }
 .analysis-modal__list li{ padding: 8px 10px; margin-bottom: 8px; border-radius: 4px; background: var(--grey-800); color: var(--grey-100); }
 .analysis-modal__list li.warn{ color: var(--yellow); border-left: 4px solid var(--yellow); }
 .analysis-modal__actions{ margin-top: 12px; }
+@media (max-width: 760px){
+  .analysis-modal{ padding: 12vh 0.65rem 0.65rem; }
+  .analysis-modal__panel{ height: calc(100vh - 13vh); padding: 14px; overflow-y: auto; }
+  .analysis-modal__content{ grid-template-columns: 1fr; gap: 12px; }
+  .analysis-modal__content{ height: auto; }
+  .analysis-modal__video{ max-height: 42vh; }
+  .analysis-modal__details{ max-height: none; overflow: visible; padding-top: 0; }
+}
 
 
 /* ---------------------------------------------------------
@@ -430,5 +492,6 @@
   gap: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.75rem;
-  color: var(--grey-500);
+  color: var(--grey-50);
+  font-weight: 700;
 }

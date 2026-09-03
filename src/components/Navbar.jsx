@@ -13,7 +13,9 @@ export default function Navbar() {
   const [videoUrl, setVideoUrl] = useState(null)
 
   useEffect(() => {
+    window.addEventListener('open-upload', handleOpenCamera)
     return () => {
+      window.removeEventListener('open-upload', handleOpenCamera)
       if (videoUrl) try { URL.revokeObjectURL(videoUrl) } catch (_) {}
     }
   }, [videoUrl])
@@ -27,9 +29,7 @@ export default function Navbar() {
     if (!file) return
     setUploading(true)
     try {
-      const result = await analyzeVideo(file, (p) => {
-        // optionally show progress in future
-      })
+      const result = await analyzeVideo(file)
       console.log('analyzeVideo result', result)
       // Backwards-compat: analyzer may return an array of warnings (old) or an object { warnings, checkedFrames, ... }
       let warnings = []
@@ -45,14 +45,11 @@ export default function Navbar() {
         maxAngle = result.maxAngle
       }
 
-      // Open full-page analysis in a new tab with overlay guidance
+      // Keep the analysis in the centered modal so the full video stays visible.
       try {
         const url = URL.createObjectURL(file)
-        const win = window.open('', '_blank')
-        if (!win) {
-          // popup blocked; fallback to modal
-          const fallbackUrl = url
-          setVideoUrl(fallbackUrl)
+        if (url) {
+          setVideoUrl(url)
           setAnalysisData({ warnings, frames, avgAngle, minAngle, maxAngle })
           setAnalysisOpen(true)
           return
@@ -201,7 +198,7 @@ export default function Navbar() {
           <a href="#exercises">Exercises</a>
         </nav>
         <Button onClick={handleOpenCamera} variant="ghost" size="sm" className="nav__cta">
-          {uploading ? 'Uploading...' : 'Start camera'}
+          {uploading ? 'Uploading...' : 'Upload video'}
         </Button>
 
         <input

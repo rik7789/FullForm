@@ -45,6 +45,25 @@ function calculateAngle(a, b, c) {
   return angle
 }
 
+export async function uploadVideo(file) {
+  const formData = new FormData()
+  formData.append('video', file)
+  formData.append('exercise', 'squats')
+
+  const response = await fetch('/api/upload', {
+    method: 'POST',
+    body: formData,
+  })
+  const contentType = response.headers.get('content-type') || ''
+  const payload = contentType.includes('application/json') ? await response.json() : null
+
+  if (!response.ok) {
+    throw new Error((payload && payload.error) || 'Upload failed')
+  }
+
+  return payload || { warnings: [] }
+}
+
 export default async function analyzeVideo(file, onProgress = () => {}) {
   // Load TF and pose-detection from CDN if not present
   if (typeof window.tf === 'undefined') {
@@ -116,6 +135,7 @@ export default async function analyzeVideo(file, onProgress = () => {}) {
       const ctx = canvas.getContext('2d')
 
       const warnings = []
+      let checkedFrames = 0
       let rafId = null
       let lastProcess = 0
       const processInterval = 200 // ms between frames analyzed
@@ -124,7 +144,7 @@ export default async function analyzeVideo(file, onProgress = () => {}) {
         if (video.paused || video.ended) {
           cancelAnimationFrame(rafId)
           cleanup()
-          resolve(warnings)
+          resolve({ warnings: [...new Set(warnings)], checkedFrames, avgAngle: null, minAngle: null, maxAngle: null })
           return
         }
 
@@ -132,6 +152,7 @@ export default async function analyzeVideo(file, onProgress = () => {}) {
         if (now - lastProcess >= processInterval) {
           lastProcess = now
           try {
+            checkedFrames += 1
             ctx.drawImage(video, 0, 0, width, height)
             // run pose detection
             detector.estimatePoses(video).then((poses) => {
@@ -148,7 +169,7 @@ export default async function analyzeVideo(file, onProgress = () => {}) {
                   const angle = calculateAngle(hip, knee, ankle)
                   const t = Math.round(video.currentTime * 10) / 10
                   if (angle > 100 && angle < 150) {
-                    warnings.push(`At ${t}s: Squat depth insufficient (knee angle ${Math.round(angle)}°)`)
+                    warnings.push(`At ${t}s: Lower your hips further until your knee angle is near 90° (currently ${Math.round(angle)}°). Keep both heels planted, chest lifted, and knees tracking in line with your toes.`)
                   }
                 }
               }

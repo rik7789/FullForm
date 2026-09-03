@@ -1,3 +1,5 @@
+import recordsImage from '../assets/records.png'
+
 const STEPS = [
   {
     num: '01',
@@ -29,6 +31,7 @@ export default function HowItWorks() {
           </li>
         ))}
       </ol>
+      <img className="how__image" src={recordsImage} alt="Full Form movement records" />
     </section>
   )
 }

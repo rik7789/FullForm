@@ -73,8 +73,6 @@ if (t >= 0.95 && !w.revealed) {
                 section: entry.target,
               })
             }
-          } else if (!entry.isIntersecting) {
-            firedRef.current.delete(id)
           }
         })
       },

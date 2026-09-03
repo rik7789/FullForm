@@ -57,16 +57,16 @@ body{ color: var(--grey-50); }
 
 .reveal-section{
   opacity: 0;
-  transform: translateY(16px);
+  transform: translateY(10px);
   will-change: opacity, transform;
 }
 .reveal-section.revealed{
-  animation: revealPop 0.52s cubic-bezier(0.4, 0.0, 0.2, 1) both;
+  animation: revealPop 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @keyframes revealPop{
-  0%{ opacity: 0; transform: translateY(16px); }
-  35%{ opacity: 0.65; transform: translateY(4px); }
+  0%{ opacity: 0; transform: translateY(10px); }
+  60%{ opacity: 0.85; transform: translateY(2px); }
   100%{ opacity: 1; transform: none; }
 }
 
